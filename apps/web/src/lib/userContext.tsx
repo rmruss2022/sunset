@@ -1,15 +1,26 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from "react";
+import { trpc } from "./trpc";
 
-interface UserContextValue {
-  userId: string | null;
-  setUserId: (id: string) => void;
+export interface AuthUser {
+  userId: string;
+  displayName: string;
+  isAdmin: boolean;
 }
 
-const UserContext = createContext<UserContextValue>({ userId: null, setUserId: () => {} });
+interface UserContextValue {
+  user: AuthUser | null;
+  isLoading: boolean;
+}
+
+const UserContext = createContext<UserContextValue>({ user: null, isLoading: true });
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [userId, setUserId] = useState<string | null>(null);
-  return <UserContext.Provider value={{ userId, setUserId }}>{children}</UserContext.Provider>;
+  const { data, isLoading } = trpc.auth.me.useQuery(undefined, {
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const user = data ?? null;
+  return <UserContext.Provider value={{ user, isLoading }}>{children}</UserContext.Provider>;
 }
 
 export function useCurrentUser() {

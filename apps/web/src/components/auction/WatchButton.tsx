@@ -14,22 +14,22 @@ interface WatchButtonProps {
 export function WatchButton({
   auctionId, isWatched, watchCount, onToggle, className,
 }: WatchButtonProps) {
-  const { userId } = useCurrentUser();
+  const { user } = useCurrentUser();
 
   const watch   = trpc.auction.watch.useMutation({ onSuccess: onToggle });
   const unwatch = trpc.auction.unwatch.useMutation({ onSuccess: onToggle });
   const pending = watch.isPending || unwatch.isPending;
 
   function toggle() {
-    if (!userId) return;
-    if (isWatched) unwatch.mutate({ auctionId, userId });
-    else           watch.mutate({ auctionId, userId });
+    if (!user) return;
+    if (isWatched) unwatch.mutate({ auctionId });
+    else           watch.mutate({ auctionId });
   }
 
   return (
     <button
       onClick={toggle}
-      disabled={!userId || pending}
+      disabled={!user || pending}
       className={cn(
         "h-9 flex items-center justify-center gap-2 text-[11px] tracking-[0.12em] uppercase font-medium",
         "border transition-all duration-200",
@@ -43,7 +43,7 @@ export function WatchButton({
       {isWatched
         ? <EyeOff className="h-3.5 w-3.5" />
         : <Eye className="h-3.5 w-3.5" />}
-      {!userId ? "Select user to watch"
+      {!user ? "Log in to watch"
         : isWatched ? "Watching"
         : "Watch"}
       <span className="tabular text-ah-text-3">({watchCount})</span>

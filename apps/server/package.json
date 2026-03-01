@@ -13,15 +13,21 @@
   "dependencies": {
     "@prisma/client": "^6.0.0",
     "@trpc/server": "^11.0.0-rc.475",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
     "ws": "^8.19.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.15.0",
     "@types/ws": "^8.18.1",
     "prisma": "^6.0.0",

@@ -3,10 +3,10 @@ import type { HTMLAttributes } from "react";
 import { cn } from "./cn";
 
 const badgeVariants = {
-  default: "bg-gray-900 text-white",
-  outline: "border border-gray-200 text-gray-700",
-  success: "bg-green-50 text-green-700 border border-green-200",
-  warning: "bg-amber-50 text-amber-700 border border-amber-200",
+  default: "bg-ah-raised border border-ah-border text-ah-text",
+  outline: "border border-ah-border text-ah-text-2",
+  success: "bg-ah-green/10 text-ah-green border border-ah-green/25",
+  warning: "bg-ah-amber/10 text-ah-amber border border-ah-amber/25",
 };
 
 type BadgeVariant = keyof typeof badgeVariants;

@@ -1,8 +1,11 @@
+import { TRPCError } from "@trpc/server";
 import { procedure, router } from "../trpc.js";
 import { resetAuctionStore } from "../db/seed.js";
 
 export const adminRouter = router({
   resetAuction: procedure.mutation(async ({ ctx }) => {
+    if (!ctx.currentUser?.isAdmin)
+      throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
     const auction = await resetAuctionStore(ctx.prisma);
     return {
       success: true,
@@ -12,6 +15,8 @@ export const adminRouter = router({
   }),
 
   snapshotAuction: procedure.query(async ({ ctx }) => {
+    if (!ctx.currentUser?.isAdmin)
+      throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
     return {
       auctions: await ctx.prisma.auction.findMany({
         include: {
@@ -34,10 +39,14 @@ export const adminRouter = router({
 
   // Backwards-compatible aliases
   resetVendors: procedure.mutation(async ({ ctx }) => {
+    if (!ctx.currentUser?.isAdmin)
+      throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
     const auction = await resetAuctionStore(ctx.prisma);
     return { success: true, message: "Store reset successfully", auction };
   }),
   snapshotVendors: procedure.query(async ({ ctx }) => {
+    if (!ctx.currentUser?.isAdmin)
+      throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
     return ctx.prisma.auction.findMany({
       include: { seller: true, bids: true },
     });

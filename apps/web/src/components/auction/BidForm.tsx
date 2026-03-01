@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { Gavel, AlertCircle } from "lucide-react";
 import { trpc } from "../../lib/trpc";
 import { useCurrentUser } from "../../lib/userContext";
@@ -18,22 +19,25 @@ function fmt(n: number) {
 }
 
 export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, className }: BidFormProps) {
-  const { userId, setUserId } = useCurrentUser();
+  const { user } = useCurrentUser();
   const toast = useToast();
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
 
-  const { data: users } = trpc.auction.getUsers.useQuery();
   const placeBid = trpc.auction.placeBid.useMutation({
     onSuccess: (result) => {
       if (result.success) {
-        toast(result.message ?? "Bid placed!", "success");
+        if (result.isLeading) {
+          toast(result.message ?? "You are the highest bidder!", "success");
+          if (typeof window !== "undefined" && (window as Window & { confetti?: () => void }).confetti) {
+            (window as Window & { confetti?: () => void }).confetti!();
+          }
+        } else {
+          toast(result.message ?? "You have been outbid", "error");
+        }
         setAmount("");
         setError("");
         onBid();
-        if (typeof window !== "undefined" && (window as Window & { confetti?: () => void }).confetti) {
-          (window as Window & { confetti?: () => void }).confetti!();
-        }
       } else {
         setError(result.message);
       }
@@ -51,16 +55,12 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!userId) {
-      setError("Select a bidder from the header first.");
-      return;
-    }
     const val = parseFloat(amount);
     if (isNaN(val) || val < minBid) {
       setError(`Minimum bid is ${fmt(minBid)}`);
       return;
     }
-    placeBid.mutate({ auctionId, userId, maxAmount: val });
+    placeBid.mutate({ auctionId, maxAmount: val });
   }
 
   if (isEnded) {
@@ -77,33 +77,26 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
     );
   }
 
+  if (!user) {
+    return (
+      <div className={className}>
+        <div className="border border-ah-border bg-ah-surface p-5 text-center">
+          <p className="text-sm text-ah-text-2 mb-3">Sign in to place a bid</p>
+          <Link
+            to="/login"
+            className="text-xs tracking-widest uppercase text-ah-gold hover:text-ah-gold-bright transition-colors"
+          >
+            Log In &rarr;
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <div className="border border-ah-border bg-ah-raised p-5 space-y-4">
         <form onSubmit={handleSubmit} className="space-y-3.5">
-          {/* Bidder selector */}
-          <div>
-            <label className="block text-[10px] tracking-[0.14em] uppercase text-ah-text-3 mb-1.5">
-              Bid as
-            </label>
-            <div className="relative">
-              <select
-                value={userId ?? ""}
-                onChange={(e) => setUserId(e.target.value)}
-                className="w-full h-9 pl-3 pr-8 text-sm appearance-none
-                           bg-ah-surface border border-ah-border text-ah-text
-                           focus:outline-none focus:border-ah-border-gold
-                           transition-colors cursor-pointer"
-              >
-                <option value="" disabled className="bg-ah-surface text-ah-text-3">Select bidder…</option>
-                {users?.map((u) => (
-                  <option key={u.id} value={u.id} className="bg-ah-surface">{u.displayName}</option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-ah-text-3 text-[10px]">▾</span>
-            </div>
-          </div>
-
           {/* Amount input */}
           <div>
             <label className="block text-[10px] tracking-[0.14em] uppercase text-ah-text-3 mb-1.5">

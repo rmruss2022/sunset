@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -59,21 +59,20 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-[11px] tracking-[0.1em] uppercase text-ah-text-3">
         {label}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && <span className="ml-1 text-ah-red/70">*</span>}
       </label>
       {children}
-      {hint && <p className="text-xs text-gray-500">{hint}</p>}
+      {hint && <p className="text-xs text-ah-text-3 mt-1">{hint}</p>}
     </div>
   );
 }
 
 export function CreateListingRoute() {
   const navigate = useNavigate();
-  const { userId } = useCurrentUser();
+  const { user } = useCurrentUser();
   const addToast = useToast();
-  const usersQuery = trpc.auction.getUsers.useQuery();
   const createMutation = trpc.auction.create.useMutation({
     onSuccess: (data) => {
       addToast(`"${data.title}" listed successfully!`, "success");
@@ -100,20 +99,27 @@ export function CreateListingRoute() {
     shippingCostPayer: "BUYER" as "BUYER" | "SELLER",
     shippingCostMin: "0",
     returnsAccepted: true,
-    sellerId: userId ?? "",
   });
 
   const set = (key: keyof typeof form, value: string | boolean) =>
     setForm((f) => ({ ...f, [key]: value }));
 
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 py-24 text-center">
+        <p className="font-display text-2xl text-ah-text mb-3">Sign in to list an item</p>
+        <Link
+          to="/login"
+          className="text-xs tracking-widest uppercase text-ah-gold hover:text-ah-gold-bright transition-colors"
+        >
+          Log In &rarr;
+        </Link>
+      </div>
+    );
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const activeSellerId = form.sellerId || userId;
-    if (!activeSellerId) {
-      addToast("Please select a seller in the header first", "error");
-      return;
-    }
 
     const imageUrls = form.imageUrl.trim()
       ? form.imageUrl
@@ -123,7 +129,6 @@ export function CreateListingRoute() {
       : [];
 
     createMutation.mutate({
-      sellerId: activeSellerId,
       title: form.title,
       description: form.description,
       category: form.category,
@@ -147,51 +152,25 @@ export function CreateListingRoute() {
     form.listingFormat === "AUCTION_WITH_BUY_NOW";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-8 flex items-center gap-4">
+    <div className="mx-auto max-w-2xl px-4 sm:px-6 py-8">
+      <div className="h-px bg-gradient-to-r from-ah-border-gold via-ah-border to-transparent mb-8" />
+
+      <div className="mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="text-xs tracking-widest uppercase text-ah-text-3 hover:text-ah-text-2 transition-colors mb-4 flex items-center gap-1"
         >
           ← Back
         </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Listing</h1>
-          <p className="text-sm text-gray-500">List an item for auction</p>
-        </div>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-ah-text-3 mb-1">New Lot</p>
+        <h1 className="font-display text-3xl font-medium text-ah-text">Create Listing</h1>
+        <p className="text-sm text-ah-text-2 mt-1">List an item for auction</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Seller */}
-        <section className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900">Seller</h2>
-          <Field label="Selling as" required>
-            <Select
-              value={form.sellerId || userId || ""}
-              onValueChange={(v) => set("sellerId", v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select seller…" />
-              </SelectTrigger>
-              <SelectContent>
-                {usersQuery.data?.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.displayName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!userId && (
-              <p className="text-xs text-amber-600 mt-1">
-                Select a user in the header to pre-fill this.
-              </p>
-            )}
-          </Field>
-        </section>
-
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Item details */}
-        <section className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900">Item Details</h2>
+        <section className="border border-ah-border bg-ah-surface p-6 space-y-4">
+          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Item Details</h2>
 
           <Field label="Title" required>
             <Input
@@ -293,8 +272,8 @@ export function CreateListingRoute() {
         </section>
 
         {/* Pricing */}
-        <section className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900">Pricing & Format</h2>
+        <section className="border border-ah-border bg-ah-surface p-6 space-y-4">
+          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Pricing &amp; Format</h2>
 
           <Field label="Listing format" required>
             <Select
@@ -372,8 +351,8 @@ export function CreateListingRoute() {
         </section>
 
         {/* Shipping */}
-        <section className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900">Shipping & Returns</h2>
+        <section className="border border-ah-border bg-ah-surface p-6 space-y-4">
+          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Shipping &amp; Returns</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Shipping paid by">
@@ -412,10 +391,10 @@ export function CreateListingRoute() {
               <button
                 type="button"
                 onClick={() => set("returnsAccepted", true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
+                className={`px-4 py-2 text-xs tracking-[0.1em] uppercase font-medium border transition-colors ${
                   form.returnsAccepted
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    ? "border-ah-gold text-ah-gold bg-ah-gold/10"
+                    : "border-ah-border text-ah-text-2 hover:border-ah-border-gold hover:text-ah-text"
                 }`}
               >
                 Accepted (30 days)
@@ -423,10 +402,10 @@ export function CreateListingRoute() {
               <button
                 type="button"
                 onClick={() => set("returnsAccepted", false)}
-                className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
+                className={`px-4 py-2 text-xs tracking-[0.1em] uppercase font-medium border transition-colors ${
                   !form.returnsAccepted
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    ? "border-ah-red/50 text-ah-red bg-ah-red/10"
+                    : "border-ah-border text-ah-text-2 hover:border-ah-border-gold hover:text-ah-text"
                 }`}
               >
                 No returns
@@ -436,11 +415,11 @@ export function CreateListingRoute() {
         </section>
 
         {/* Submit */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-xs tracking-widest uppercase text-ah-text-3 hover:text-ah-text-2 transition-colors"
           >
             Cancel
           </button>

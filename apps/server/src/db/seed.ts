@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import bcrypt from "bcryptjs";
 
 export const SEED_AUCTION_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -10,6 +11,7 @@ const USER_IDS = {
   carol: "10000000-0000-0000-0000-000000000003",
   dave: "10000000-0000-0000-0000-000000000004",
   eve: "10000000-0000-0000-0000-000000000005",
+  admin: "10000000-0000-0000-0000-000000000006",
 } as const;
 
 const AUCTION_IDS = {
@@ -73,10 +75,15 @@ export async function resetAuctionStore(prisma: PrismaClient) {
   await prisma.user.deleteMany();
 
   // --- Users ---
+  const defaultHash = await bcrypt.hash("password123", 10);
+  const adminHash = await bcrypt.hash("adminpass99", 10);
+
   const users = [
     {
       id: USER_IDS.alice,
       email: "alice@example.com",
+      passwordHash: defaultHash,
+      isAdmin: false,
       displayName: "Alice Chen",
       sellerRatingPercent: 99.2,
       sellerFeedbackCount: 847,
@@ -86,6 +93,8 @@ export async function resetAuctionStore(prisma: PrismaClient) {
     {
       id: USER_IDS.bob,
       email: "bob@example.com",
+      passwordHash: defaultHash,
+      isAdmin: false,
       displayName: "Bob Martinez",
       sellerRatingPercent: 98.7,
       sellerFeedbackCount: 1203,
@@ -95,6 +104,8 @@ export async function resetAuctionStore(prisma: PrismaClient) {
     {
       id: USER_IDS.carol,
       email: "carol@example.com",
+      passwordHash: defaultHash,
+      isAdmin: false,
       displayName: "Carol Williams",
       sellerRatingPercent: 100.0,
       sellerFeedbackCount: 12,
@@ -104,6 +115,8 @@ export async function resetAuctionStore(prisma: PrismaClient) {
     {
       id: USER_IDS.dave,
       email: "dave@example.com",
+      passwordHash: defaultHash,
+      isAdmin: false,
       displayName: "Dave Johnson",
       sellerRatingPercent: 97.5,
       sellerFeedbackCount: 34,
@@ -113,17 +126,30 @@ export async function resetAuctionStore(prisma: PrismaClient) {
     {
       id: USER_IDS.eve,
       email: "eve@example.com",
+      passwordHash: defaultHash,
+      isAdmin: false,
       displayName: "Eve Davis",
       sellerRatingPercent: 99.8,
       sellerFeedbackCount: 2341,
       sellerLocation: "Seattle, WA",
       paymentVerified: true,
     },
+    {
+      id: USER_IDS.admin,
+      email: "admin@auctionhouse.com",
+      passwordHash: adminHash,
+      isAdmin: true,
+      displayName: "Admin",
+      sellerRatingPercent: 100.0,
+      sellerFeedbackCount: 0,
+      sellerLocation: "United States",
+      paymentVerified: false,
+    },
   ];
 
   for (const u of users) {
     await prisma.user.upsert({
-      where: { id: u.id },
+      where: { email: u.email },
       create: u,
       update: u,
     });

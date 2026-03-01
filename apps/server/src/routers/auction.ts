@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { procedure, router } from "../trpc.js";
 import { placeProxyBid } from "../services/bidding.js";
 import {
@@ -29,26 +30,26 @@ export const auctionRouter = router({
     .input(
       z.object({
         id: z.string().uuid(),
-        userId: z.string().uuid().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      return getAuctionById(ctx.prisma, input.id, input.userId);
+      return getAuctionById(ctx.prisma, input.id, ctx.currentUser?.userId);
     }),
 
   placeBid: procedure
     .input(
       z.object({
         auctionId: z.string().uuid(),
-        userId: z.string().uuid(),
         maxAmount: z.number().positive().max(10_000_000),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.currentUser)
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       const result = await placeProxyBid(
         ctx.prisma,
         input.auctionId,
-        input.userId,
+        ctx.currentUser.userId,
         input.maxAmount,
       );
       if (result.success) {
@@ -61,22 +62,24 @@ export const auctionRouter = router({
     .input(
       z.object({
         auctionId: z.string().uuid(),
-        userId: z.string().uuid(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return watchAuction(ctx.prisma, input.auctionId, input.userId);
+      if (!ctx.currentUser)
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      return watchAuction(ctx.prisma, input.auctionId, ctx.currentUser.userId);
     }),
 
   unwatch: procedure
     .input(
       z.object({
         auctionId: z.string().uuid(),
-        userId: z.string().uuid(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return unwatchAuction(ctx.prisma, input.auctionId, input.userId);
+      if (!ctx.currentUser)
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      return unwatchAuction(ctx.prisma, input.auctionId, ctx.currentUser.userId);
     }),
 
   getUsers: procedure.query(async ({ ctx }) => {
@@ -94,7 +97,6 @@ export const auctionRouter = router({
   create: procedure
     .input(
       z.object({
-        sellerId: z.string().uuid(),
         title: z.string().min(3).max(200),
         description: z.string().min(10),
         category: z.string(),
@@ -115,12 +117,14 @@ export const auctionRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.currentUser)
+        throw new TRPCError({ code: "UNAUTHORIZED" });
       const endsAt = new Date(
         Date.now() + input.durationHours * 60 * 60 * 1000,
       );
       return ctx.prisma.auction.create({
         data: {
-          sellerId: input.sellerId,
+          sellerId: ctx.currentUser.userId,
           title: input.title,
           description: input.description,
           category: input.category,

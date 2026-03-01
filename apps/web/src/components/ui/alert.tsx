@@ -1,8 +1,8 @@
 import { cn } from "./cn";
 
 const alertVariants = {
-  default: "border-gray-200 bg-white text-gray-900",
-  destructive: "border-red-200 bg-red-50 text-red-700",
+  default: "border-ah-border-gold bg-ah-gold/5 text-ah-text",
+  destructive: "border-ah-red/30 bg-ah-red/10 text-ah-red",
 };
 
 type AlertVariant = keyof typeof alertVariants;

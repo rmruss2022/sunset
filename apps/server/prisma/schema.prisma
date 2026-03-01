@@ -10,6 +10,8 @@ datasource db {
 model User {
   id                    String   @id @default(uuid()) @db.Uuid
   email                 String   @unique
+  passwordHash          String   @default("")
+  isAdmin               Boolean  @default(false)
   displayName           String
   sellerRatingPercent   Float    @default(100.0)
   sellerFeedbackCount   Int      @default(0)
@@ -17,6 +19,12 @@ model User {
   stripeCustomerId      String?
   stripePaymentMethodId String?
   paymentVerified       Boolean  @default(false)
+  addressLine1          String?
+  addressLine2          String?
+  city                  String?
+  state                 String?
+  zipCode               String?
+  country               String?
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

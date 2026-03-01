@@ -34,7 +34,7 @@ export function SellerInfo({
           <span className={`tabular font-medium ${ratingColor}`}>
             {ratingPercent.toFixed(1)}%
           </span>
-          <span className="text-ah-border">|</span>
+          <span className="text-ah-text-3">|</span>
           <span className="text-ah-text-2 tabular">
             {feedbackCount.toLocaleString()} reviews
           </span>

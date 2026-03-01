@@ -6,22 +6,26 @@ import { forwardRef } from "react";
 import { cn } from "./cn";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-700",
-        secondary: "bg-gray-900 text-white hover:bg-gray-800",
+        default:
+          "bg-ah-gold text-ah-bg hover:bg-ah-gold-bright",
+        secondary:
+          "bg-ah-raised border border-ah-border text-ah-text hover:border-ah-border-gold",
         outline:
-          "border border-gray-200 bg-white text-gray-900 hover:bg-gray-50 hover:text-gray-900",
-        ghost: "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
+          "border border-ah-border bg-transparent text-ah-text-2 hover:border-ah-border-gold hover:text-ah-text",
+        ghost:
+          "text-ah-text-2 hover:bg-ah-raised hover:text-ah-text",
+        destructive:
+          "bg-ah-red/90 text-white hover:bg-ah-red border border-ah-red/50",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-md px-3",
-        lg: "h-11 rounded-md px-5",
-        icon: "h-10 w-10",
+        default: "h-9 px-4 py-2",
+        sm: "h-8 px-3 text-xs",
+        lg: "h-11 px-5",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {

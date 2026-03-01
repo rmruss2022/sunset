@@ -33,12 +33,6 @@ export function BidHistory({ bids, totalBidCount, className }: BidHistoryProps) 
     );
   }
 
-  // Build stable anonymous labels by order of first appearance
-  const seen: string[] = [];
-  for (const b of [...bids].reverse()) {
-    if (!seen.includes(b.userId)) seen.push(b.userId);
-  }
-  const label = (id: string) => `Bidder ${seen.indexOf(id) + 1}`;
 
   return (
     <div className={className}>
@@ -78,7 +72,7 @@ export function BidHistory({ bids, totalBidCount, className }: BidHistoryProps) 
               <span
                 className={bid.isLeading ? "text-ah-text text-sm font-medium" : "text-ah-text-2 text-sm"}
               >
-                {label(bid.userId)}
+                {bid.userDisplayName}
               </span>
               {bid.isLeading && (
                 <span className="px-1.5 py-0.5 text-[9px] tracking-widest uppercase

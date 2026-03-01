@@ -2,13 +2,14 @@ import "dotenv/config";
 
 import { createServer } from "node:http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { WebSocketServer, WebSocket } from "ws";
 
 import { prisma } from "./db/prisma.js";
 import { appRouter } from "./routers/index.js";
-import type { Context } from "./trpc.js";
+import { createContext } from "./trpc.js";
 import { startOutboxWorker } from "./workers/outbox.js";
 
 const port = Number.parseInt(process.env.PORT ?? "4000", 10);
@@ -27,15 +28,14 @@ function emitAuctionUpdate(auctionId: string) {
   }
 }
 
-const createContext = (): Context => ({ prisma, emitAuctionUpdate });
-
 async function main() {
   await prisma.$connect();
 
   const app = express();
   const httpServer = createServer(app);
 
-  app.use(cors());
+  app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+  app.use(cookieParser());
   app.use(express.json());
 
   app.get("/healthz", (_req, res) => {
@@ -46,7 +46,7 @@ async function main() {
     "/trpc",
     createExpressMiddleware({
       router: appRouter,
-      createContext,
+      createContext: ({ req, res }) => createContext({ req, res }, emitAuctionUpdate),
     }),
   );
 

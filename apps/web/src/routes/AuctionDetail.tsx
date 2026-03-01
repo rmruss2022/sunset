@@ -8,7 +8,6 @@ import { BidHistory } from "../components/auction/BidHistory";
 import { WatchButton } from "../components/auction/WatchButton";
 import { SellerInfo } from "../components/auction/SellerInfo";
 import { trpc } from "../lib/trpc";
-import { useCurrentUser } from "../lib/userContext";
 import { useAuctionSocket } from "../lib/useAuctionSocket";
 import type { AuctionDetail as AuctionDetailType, BidRecord } from "../types/auction";
 
@@ -105,11 +104,10 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 export function AuctionDetailRoute() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userId } = useCurrentUser();
   const queryClient = useQueryClient();
 
   const { data: raw, isLoading, isError } = trpc.auction.getById.useQuery(
-    { id: id!, userId: userId ?? undefined },
+    { id: id! },
     { enabled: !!id },
   );
 
@@ -227,7 +225,7 @@ export function AuctionDetailRoute() {
               {auction.title}
             </h1>
             {(auction.brand || auction.year) && (
-              <p className="text-sm text-ah-text-3 mt-1">
+              <p className="text-sm text-ah-text-2 mt-1">
                 {[auction.brand, auction.model, auction.year].filter(Boolean).join(" · ")}
               </p>
             )}

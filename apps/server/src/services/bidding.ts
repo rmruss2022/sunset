@@ -169,7 +169,7 @@ export async function placeProxyBid(
 
       await tx.bid.update({
         where: { id: leadingBid.id },
-        data: { maxAmount: maxAmountInput },
+        data: { maxAmount: maxAmountInput, visiblePriceSnapshot: visiblePrice },
       });
 
       await tx.auction.update({
@@ -200,6 +200,12 @@ export async function placeProxyBid(
           visiblePriceSnapshot: visiblePrice,
           isLeading: false,
         },
+      });
+
+      // Keep the leader's snapshot in sync with the new visible price
+      await tx.bid.update({
+        where: { id: leadingBid.id },
+        data: { visiblePriceSnapshot: visiblePrice },
       });
 
       await tx.auction.update({
