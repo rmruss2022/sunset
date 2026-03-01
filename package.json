@@ -1,0 +1,17 @@
+{
+  "name": "interview-starter",
+  "private": true,
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail \"yarn workspace @interview/server dev\" \"yarn workspace @interview/web dev\"",
+    "build": "yarn workspace @interview/server build && yarn workspace @interview/web build",
+    "lint": "yarn workspaces run lint",
+    "test": "yarn workspaces run test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

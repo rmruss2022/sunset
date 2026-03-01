@@ -1,0 +1,12 @@
+node_modules
+.turbo
+.yarn
+yarn-error.log
+dist
+build
+.cache
+.env
+.env.*
+!.env.example
+.DS_Store
+.playwright-mcp

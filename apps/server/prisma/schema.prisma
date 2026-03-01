@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String   @id @default(uuid()) @db.Uuid
+  email                 String   @unique
+  displayName           String
+  sellerRatingPercent   Float    @default(100.0)
+  sellerFeedbackCount   Int      @default(0)
+  sellerLocation        String   @default("United States")
+  stripeCustomerId      String?
+  stripePaymentMethodId String?
+  paymentVerified       Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  listings      Auction[]
+  bids          Bid[]
+  watches       Watch[]
+  notifications Notification[]
+}
+
+model Auction {
+  id          String  @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  category    String
+  condition   String
+  brand       String?
+  model       String?
+  year        Int?
+  itemSpecifics          Json     @default("{}")
+  imageUrls              String[]
+  videoUrl               String?
+
+  listingFormat String  @default("AUCTION")
+  startingPrice Decimal @db.Decimal(10, 2)
+  buyNowPrice   Decimal? @db.Decimal(10, 2)
+  currentPrice  Decimal @db.Decimal(10, 2)
+  reservePrice  Decimal? @db.Decimal(10, 2)
+  endsAt        DateTime
+  status        String  @default("ACTIVE")
+
+  sellerId String @db.Uuid
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  shippingMode             String  @default("SHIPPING_ONLY")
+  shippingCostPayer        String  @default("BUYER")
+  shippingService          String  @default("Standard Shipping")
+  shippingCostMin          Decimal @default(0) @db.Decimal(10, 2)
+  shippingCostMax          Decimal @default(0) @db.Decimal(10, 2)
+  handlingDays             Int     @default(1)
+  estimatedDeliveryMinDays Int     @default(3)
+  estimatedDeliveryMaxDays Int     @default(7)
+  itemLocationZip          String  @default("10001")
+  internationalShipping    Boolean @default(false)
+
+  returnsAccepted    Boolean @default(true)
+  returnsPolicyLabel String  @default("30 days returns")
+  paymentMethodLabel String  @default("PayPal, Credit Card")
+
+  watchCount Int @default(0)
+  bidCount   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bids    Bid[]
+  watches Watch[]
+}
+
+model Bid {
+  id                   String   @id @default(uuid()) @db.Uuid
+  auctionId            String   @db.Uuid
+  auction              Auction  @relation(fields: [auctionId], references: [id])
+  userId               String   @db.Uuid
+  user                 User     @relation(fields: [userId], references: [id])
+  maxAmount            Decimal  @db.Decimal(10, 2)
+  visiblePriceSnapshot Decimal? @db.Decimal(10, 2)
+  isLeading            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+
+  @@index([auctionId])
+  @@index([userId])
+}
+
+model Watch {
+  id        String   @id @default(uuid()) @db.Uuid
+  auctionId String   @db.Uuid
+  auction   Auction  @relation(fields: [auctionId], references: [id])
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([auctionId, userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  payload   Json     @default("{}")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  eventType   String
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([processedAt])
+}
