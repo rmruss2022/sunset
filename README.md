@@ -8,27 +8,28 @@ A full-featured eBay-like auction marketplace. Multiple simultaneous auctions, p
 - Node.js v20+
 - PostgreSQL running locally
 
-### Setup
+### Install & startup
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 yarn install
 
-# Configure environment
+# 2. Configure environment
 cp apps/server/.env.example apps/server/.env
-# Edit apps/server/.env and set DATABASE_URL
+# Edit apps/server/.env and set DATABASE_URL to your PostgreSQL connection string
 
-# Run migrations
+# 3. Run migrations
 yarn workspace @interview/server prisma migrate deploy
 
-# Seed database
+# 4. Seed the database (demo users, listings, bids)
+#    Listing end dates are set relative to when you run this, so auctions are active and current
 yarn workspace @interview/server prisma db seed
 
-# Start dev servers
+# 5. Start dev servers (API + web)
 yarn dev
 ```
 
-Open http://localhost:5173
+Then open **http://localhost:5173** in your browser. The API runs at http://localhost:4000.
 
 ### Environment Variables
 
