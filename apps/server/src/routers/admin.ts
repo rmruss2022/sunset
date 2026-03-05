@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 import { procedure, router } from "../trpc.js";
 import { resetAuctionStore } from "../db/seed.js";
 
@@ -36,6 +37,58 @@ export const adminRouter = router({
       }),
     };
   }),
+
+  deleteAuction: procedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.currentUser?.isAdmin)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
+
+      await ctx.prisma.$transaction([
+        ctx.prisma.bid.deleteMany({ where: { auctionId: input.id } }),
+        ctx.prisma.watch.deleteMany({ where: { auctionId: input.id } }),
+        ctx.prisma.auction.delete({ where: { id: input.id } }),
+      ]);
+
+      return { success: true };
+    }),
+
+  updateAuction: procedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        title: z.string().min(3).max(200).optional(),
+        description: z.string().min(10).optional(),
+        category: z.string().min(1).optional(),
+        brand: z.string().min(1).optional(),
+        model: z.string().min(1).optional(),
+        year: z.number().int().optional(),
+        imageUrls: z.array(z.string().min(1)).optional(),
+        currentPrice: z.number().positive().optional(),
+        status: z.enum(["ACTIVE", "CLOSED"]).optional(),
+        // ISO string from client; converted to Date server-side
+        endsAt: z.string().datetime().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.currentUser?.isAdmin)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
+
+      const { id, endsAt, ...rest } = input;
+      const data: Record<string, unknown> = { ...rest };
+      if (endsAt) data.endsAt = new Date(endsAt);
+
+      const updated = await ctx.prisma.auction.update({
+        where: { id },
+        data,
+      });
+
+      return updated;
+    }),
 
   // Backwards-compatible aliases
   resetVendors: procedure.mutation(async ({ ctx }) => {

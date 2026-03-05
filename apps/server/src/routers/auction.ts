@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import Stripe from "stripe";
 import { procedure, router } from "../trpc.js";
 import { placeProxyBid } from "../services/bidding.js";
 import {
@@ -8,6 +9,10 @@ import {
   watchAuction,
   unwatchAuction,
 } from "../services/auction.js";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_placeholder", {
+  apiVersion: "2025-02-24.acacia" as any,
+});
 
 export const auctionRouter = router({
   list: procedure
@@ -46,6 +51,16 @@ export const auctionRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.currentUser)
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.currentUser.userId },
+        select: { paymentVerified: true },
+      });
+      if (!user?.paymentVerified) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Add a payment method before bidding — go to Account → Payment",
+        });
+      }
       const result = await placeProxyBid(
         ctx.prisma,
         input.auctionId,
@@ -83,6 +98,7 @@ export const auctionRouter = router({
     }),
 
   getUsers: procedure.query(async ({ ctx }) => {
+    if (!ctx.currentUser) throw new TRPCError({ code: "UNAUTHORIZED" });
     return ctx.prisma.user.findMany({
       select: {
         id: true,
@@ -119,6 +135,23 @@ export const auctionRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.currentUser)
         throw new TRPCError({ code: "UNAUTHORIZED" });
+      const seller = await ctx.prisma.user.findUnique({
+        where: { id: ctx.currentUser.userId },
+        select: { stripeConnectAccountId: true },
+      });
+      if (!seller?.stripeConnectAccountId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Set up a payout account before listing — go to Account → Payment",
+        });
+      }
+      const connectAccount = await stripe.accounts.retrieve(seller.stripeConnectAccountId);
+      if (!connectAccount.charges_enabled || !connectAccount.payouts_enabled) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Your payout account is not yet verified. Complete Stripe onboarding first.",
+        });
+      }
       const endsAt = new Date(
         Date.now() + input.durationHours * 60 * 60 * 1000,
       );

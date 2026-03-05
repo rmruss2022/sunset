@@ -55,6 +55,7 @@ export const authRouter = router({
       userId: user.id,
       displayName: user.displayName,
       isAdmin: user.isAdmin,
+      paymentVerified: user.paymentVerified,
     };
   }),
 });

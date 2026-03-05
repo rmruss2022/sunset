@@ -76,7 +76,7 @@ export function AuctionCard({ auction, index = 0 }: AuctionCardProps) {
                 : "bg-ah-bg/75 text-ah-green border-ah-green/20",
             )}
           >
-            {isClosed ? "Ended" : "Live"}
+            {isClosed ? "Closed" : "Live"}
           </span>
         </div>
       </div>
@@ -101,7 +101,7 @@ export function AuctionCard({ auction, index = 0 }: AuctionCardProps) {
         {/* Price */}
         <div className="mb-3">
           <p className="text-[9px] tracking-[0.14em] uppercase text-ah-text-3 mb-0.5">
-            {isClosed ? "Final Price" : "Current Bid"}
+            {isClosed ? "Hammer" : "Current Bid"}
           </p>
           <p className="text-[21px] font-semibold text-ah-text tabular leading-none">
             {fmt(auction.currentPrice)}

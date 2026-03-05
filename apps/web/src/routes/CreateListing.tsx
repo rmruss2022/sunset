@@ -15,17 +15,27 @@ import { useCurrentUser } from "../lib/userContext";
 import { useToast } from "../lib/toast";
 import { trpc } from "../lib/trpc";
 
+// Must match AuctionList filter categories so new listings are filterable
 const CATEGORIES = [
-  "Electronics",
-  "Cameras",
+  "Accessories & Travel",
+  "Arms & Armour",
+  "Asian Art",
+  "Books & Manuscripts",
+  "Carpets & Rugs",
+  "Coins & Currency",
+  "Decorative Arts",
+  "Fine Art",
+  "Furniture",
+  "Handbags",
+  "Jewellery",
+  "Maps & Atlases",
+  "Musical Instruments",
+  "Photography",
+  "Scientific Instruments",
+  "Sculpture",
+  "Silver",
   "Watches",
-  "Collectibles",
-  "Sports",
-  "Fashion",
-  "Vehicles",
-  "Home & Garden",
-  "Toys & Hobbies",
-  "Other",
+  "Wine & Spirits",
 ];
 
 const CONDITIONS = [
@@ -162,21 +172,21 @@ export function CreateListingRoute() {
         >
           ← Back
         </button>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-ah-text-3 mb-1">New Lot</p>
-        <h1 className="font-display text-3xl font-medium text-ah-text">Create Listing</h1>
-        <p className="text-sm text-ah-text-2 mt-1">List an item for auction</p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-ah-text-3 mb-1">New Consignment</p>
+        <h1 className="font-display text-3xl font-medium text-ah-text">Consign a Lot</h1>
+        <p className="text-sm text-ah-text-2 mt-1">Submit an item for auction</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Item details */}
         <section className="border border-ah-border bg-ah-surface p-6 space-y-4">
-          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Item Details</h2>
+          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Lot Details</h2>
 
           <Field label="Title" required>
             <Input
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
-              placeholder="e.g. Vintage Canon AE-1 35mm Film Camera"
+              placeholder="e.g. Georgian Silver Candlestick, c. 1780"
               required
               minLength={3}
               maxLength={200}
@@ -187,7 +197,7 @@ export function CreateListingRoute() {
             <Textarea
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
-              placeholder="Describe the item's condition, history, included accessories…"
+              placeholder="Describe the lot's condition, provenance, and any documentation included…"
               required
               minLength={10}
               rows={4}
@@ -273,7 +283,7 @@ export function CreateListingRoute() {
 
         {/* Pricing */}
         <section className="border border-ah-border bg-ah-surface p-6 space-y-4">
-          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Pricing &amp; Format</h2>
+          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Estimate &amp; Format</h2>
 
           <Field label="Listing format" required>
             <Select
@@ -290,9 +300,9 @@ export function CreateListingRoute() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="AUCTION">Auction</SelectItem>
-                <SelectItem value="BUY_IT_NOW">Buy It Now</SelectItem>
+                <SelectItem value="BUY_IT_NOW">Fixed Price</SelectItem>
                 <SelectItem value="AUCTION_WITH_BUY_NOW">
-                  Auction + Buy It Now
+                  Auction &amp; Fixed Price
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -300,7 +310,7 @@ export function CreateListingRoute() {
 
           <div className="grid grid-cols-2 gap-4">
             <Field
-              label={isAuction ? "Starting price ($)" : "Price ($)"}
+              label={isAuction ? "Opening bid ($)" : "Sale price ($)"}
               required
             >
               <Input
@@ -316,7 +326,7 @@ export function CreateListingRoute() {
 
             {(form.listingFormat === "BUY_IT_NOW" ||
               form.listingFormat === "AUCTION_WITH_BUY_NOW") && (
-              <Field label="Buy It Now price ($)">
+              <Field label="Fixed price ($)">
                 <Input
                   type="number"
                   value={form.buyNowPrice}
@@ -352,7 +362,7 @@ export function CreateListingRoute() {
 
         {/* Shipping */}
         <section className="border border-ah-border bg-ah-surface p-6 space-y-4">
-          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Shipping &amp; Returns</h2>
+          <h2 className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3">Delivery &amp; Guarantees</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Shipping paid by">
@@ -435,7 +445,7 @@ export function CreateListingRoute() {
             }
             className="px-8"
           >
-            {createMutation.isPending ? "Listing…" : "List Item"}
+            {createMutation.isPending ? "Submitting…" : "Consign Lot"}
           </Button>
         </div>
       </form>

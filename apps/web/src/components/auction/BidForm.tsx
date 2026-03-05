@@ -28,12 +28,12 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
     onSuccess: (result) => {
       if (result.success) {
         if (result.isLeading) {
-          toast(result.message ?? "You are the highest bidder!", "success");
+          toast(result.message ?? "You hold the highest bid.", "success");
           if (typeof window !== "undefined" && (window as Window & { confetti?: () => void }).confetti) {
             (window as Window & { confetti?: () => void }).confetti!();
           }
         } else {
-          toast(result.message ?? "You have been outbid", "error");
+          toast(result.message ?? "A higher proxy bid is in place.", "error");
         }
         setAmount("");
         setError("");
@@ -68,9 +68,9 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
       <div className={className}>
         <div className="border border-ah-red/20 bg-ah-raised p-5 text-center space-y-1">
           <Gavel className="h-5 w-5 text-ah-red/60 mx-auto" />
-          <p className="font-display text-lg text-ah-text">Bidding Closed</p>
+          <p className="font-display text-lg text-ah-text">Lot Closed</p>
           <p className="text-sm text-ah-text-2">
-            Final price: <span className="text-ah-text tabular font-medium">{fmt(currentPrice)}</span>
+            Hammer price: <span className="text-ah-text tabular font-medium">{fmt(currentPrice)}</span>
           </p>
         </div>
       </div>
@@ -100,7 +100,7 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
           {/* Amount input */}
           <div>
             <label className="block text-[10px] tracking-[0.14em] uppercase text-ah-text-3 mb-1.5">
-              Your max bid
+              Your maximum bid
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ah-text-2 text-sm">$</span>
@@ -144,7 +144,7 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
             {placeBid.isPending ? (
               <>
                 <span className="h-3.5 w-3.5 border-2 border-ah-bg border-t-transparent rounded-full animate-spin" />
-                Placing bid…
+                Submitting…
               </>
             ) : (
               <>
@@ -157,8 +157,7 @@ export function BidForm({ auctionId, currentPrice, endsAt, status, onBid, classN
 
         {/* Proxy bidding note */}
         <p className="text-[10px] text-ah-text-3 leading-relaxed border-t border-ah-border pt-3">
-          Enter your <span className="text-ah-text-2">maximum</span>. We bid on your behalf
-          up to this amount — only enough to keep you in the lead.
+          Set your ceiling. We advance the bid only as needed to keep you ahead — never beyond your maximum.
         </p>
       </div>
     </div>

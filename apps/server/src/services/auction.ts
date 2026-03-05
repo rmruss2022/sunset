@@ -118,17 +118,17 @@ export async function watchAuction(
   auctionId: string,
   userId: string,
 ) {
-  // Upsert to avoid duplicate errors
-  await prisma.watch.upsert({
-    where: { auctionId_userId: { auctionId, userId } },
-    create: { auctionId, userId },
-    update: {},
+  const { count } = await prisma.watch.createMany({
+    data: [{ auctionId, userId }],
+    skipDuplicates: true,
   });
 
-  await prisma.auction.update({
-    where: { id: auctionId },
-    data: { watchCount: { increment: 1 } },
-  });
+  if (count > 0) {
+    await prisma.auction.update({
+      where: { id: auctionId },
+      data: { watchCount: { increment: 1 } },
+    });
+  }
 
   return { success: true };
 }

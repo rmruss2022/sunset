@@ -10,15 +10,15 @@ export function SignupRoute() {
         <div className="p-8 space-y-6 text-center">
           <div className="space-y-2">
             <p className="text-[10px] tracking-[0.25em] uppercase text-ah-text-3">
-              Auction House
+              The Estate Room
             </p>
-            <h1 className="font-display text-3xl text-ah-text">Registration</h1>
+            <h1 className="font-display text-3xl text-ah-text">Membership</h1>
           </div>
 
           <p className="text-sm text-ah-text-2 leading-relaxed">
-            Registration is by invitation only.
+            Membership is by invitation only.
             <br />
-            Contact the house to request access.
+            To request access, contact the house directly.
           </p>
 
           <Link

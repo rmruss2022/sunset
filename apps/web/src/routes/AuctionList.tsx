@@ -15,17 +15,6 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "newest",      label: "Newest" },
 ];
 
-const CATEGORIES = [
-  "All",
-  "Cameras",
-  "Collectibles",
-  "Electronics",
-  "Fashion",
-  "Sports",
-  "Vehicles",
-  "Watches",
-];
-
 function toServerSort(s: SortOption) {
   if (s === "ending-soon") return "ending" as const;
   if (s === "price-low")   return "price_asc" as const;
@@ -90,20 +79,32 @@ export function AuctionListRoute() {
   const [category, setCategory] = useState("All");
   const [status,   setStatus]   = useState<"active" | "all">("active");
   const [sort,     setSort]     = useState<SortOption>("ending-soon");
-
-  const serverCategory = category !== "All" ? category : undefined;
   const serverStatus   = status === "active" ? "ACTIVE" : undefined;
 
   const query = trpc.auction.list.useQuery({
-    category: serverCategory,
     status: serverStatus,
     sort: toServerSort(sort),
   });
   const raw = query.data as Array<Record<string, unknown>> | undefined;
 
+  const summaries = useMemo(
+    () => (raw ? raw.map(mapSummary) : []),
+    [raw],
+  );
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of summaries) {
+      if (a.category) set.add(a.category);
+    }
+    return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+  }, [summaries]);
+
   const filtered = useMemo(() => {
-    if (!raw) return [];
-    let list = raw.map(mapSummary);
+    let list = summaries;
+    if (category !== "All") {
+      list = list.filter((a) => a.category === category);
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -115,11 +116,11 @@ export function AuctionListRoute() {
     }
     if (sort === "most-bids") list.sort((a, b) => b.bidCount - a.bidCount);
     return list;
-  }, [raw, search, sort]);
+  }, [summaries, category, search, sort]);
 
   const activeCount = useMemo(
-    () => raw?.filter((a) => a.status === "ACTIVE").length ?? 0,
-    [raw],
+    () => summaries.filter((a) => a.status === "ACTIVE").length ?? 0,
+    [summaries],
   );
 
   return (
@@ -131,13 +132,13 @@ export function AuctionListRoute() {
           Live Catalogue
         </p>
         <h1 className="font-display text-5xl sm:text-6xl font-light text-ah-text leading-none">
-          Auction House
+          The Estate Room
         </h1>
         <div className="flex items-center gap-3 mt-3">
           <span className="w-1.5 h-1.5 rounded-full bg-ah-green animate-gold-pulse inline-block" />
           <span className="text-sm text-ah-text-2">
             <span className="text-ah-text tabular font-medium">{activeCount}</span>
-            {" "}active listings
+            {" "}lots on offer
           </span>
         </div>
       </div>
@@ -147,7 +148,7 @@ export function AuctionListRoute() {
 
         {/* Category pill rail */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {CATEGORIES.map((cat) => (
+          {categoryOptions.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
@@ -172,7 +173,7 @@ export function AuctionListRoute() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search titles, brands…"
+              placeholder="Search lots, makers…"
               className="w-full h-9 pl-9 pr-3 text-sm bg-ah-surface border border-ah-border
                          text-ah-text placeholder:text-ah-text-3
                          focus:outline-none focus:border-ah-border-gold transition-colors"
@@ -224,13 +225,13 @@ export function AuctionListRoute() {
         </div>
       ) : query.isError ? (
         <div className="py-24 text-center">
-          <p className="font-display text-3xl text-ah-text-3 mb-2">Connection error</p>
-          <p className="text-sm text-ah-text-3">Could not reach the server. Is it running?</p>
+          <p className="font-display text-3xl text-ah-text-2 mb-2">Connection Error</p>
+          <p className="text-sm text-ah-text-2">Could not reach the server. Is it running?</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-24 text-center">
-          <p className="font-display text-4xl text-ah-text-3 mb-2">No lots found</p>
-          <p className="text-sm text-ah-text-3">Adjust your filters or check back soon.</p>
+          <p className="font-display text-4xl text-ah-text-2 mb-2">No lots found</p>
+          <p className="text-sm text-ah-text-2">Adjust your filters, or return when new consignments arrive.</p>
         </div>
       ) : (
         <>

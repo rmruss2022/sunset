@@ -87,6 +87,7 @@ export async function placeProxyBid(
     const rows = await tx.$queryRawUnsafe<
       Array<{
         id: string;
+        sellerId: string;
         endsAt: Date;
         status: string;
         startingPrice: string | number;
@@ -106,6 +107,10 @@ export async function placeProxyBid(
     // 2. Check auction is open
     if (!isAuctionOpen({ endsAt: auction.endsAt, status: auction.status }, new Date())) {
       return { success: false, message: "Auction has ended" };
+    }
+
+    if (auction.sellerId === userId) {
+      return { success: false, message: "You cannot bid on your own listing" };
     }
 
     const startingPrice = Number(auction.startingPrice);
@@ -277,41 +282,51 @@ export async function placeProxyBid(
 
 /**
  * If an auction is past its end time and still ACTIVE, finalize it.
+ * Marks it CLOSED, determines the winner, enqueues charge + notification events.
  */
 export async function finalizeAuctionIfNeeded(
   prisma: PrismaClient,
   auctionId: string,
 ): Promise<void> {
-  const auction = await prisma.auction.findUnique({ where: { id: auctionId } });
-  if (!auction || auction.status !== "ACTIVE" || new Date() < auction.endsAt) {
-    return;
-  }
-
-  await prisma.auction.update({
-    where: { id: auctionId },
+  const { count } = await prisma.auction.updateMany({
+    where: { id: auctionId, status: "ACTIVE", endsAt: { lte: new Date() } },
     data: { status: "CLOSED" },
   });
+  if (count === 0) return; // already closed or not yet ended
+
+  const auction = await prisma.auction.findUnique({
+    where: { id: auctionId },
+    include: { seller: { select: { stripeConnectAccountId: true } } },
+  });
+  if (!auction) return;
 
   const winningBid = await prisma.bid.findFirst({
     where: { auctionId, isLeading: true },
-    include: { user: true },
+    include: {
+      user: {
+        select: { stripeCustomerId: true, stripePaymentMethodId: true },
+      },
+    },
   });
 
+  const finalPrice = winningBid ? Number(winningBid.visiblePriceSnapshot) : null;
+
+  // Enqueue the charge event — outbox worker handles the actual Stripe call
   await enqueueOutboxEvent(prisma, "AUCTION_CLOSED", {
     auctionId,
     winnerId: winningBid?.userId ?? null,
-    finalPrice: winningBid ? Number(winningBid.visiblePriceSnapshot) : null,
+    finalPrice,
+    winnerCustomerId: winningBid?.user?.stripeCustomerId ?? null,
+    winnerPaymentMethodId: winningBid?.user?.stripePaymentMethodId ?? null,
+    sellerConnectAccountId: auction.seller?.stripeConnectAccountId ?? null,
   });
 
-  if (winningBid) {
+  if (winningBid && finalPrice !== null) {
     await prisma.notification.create({
       data: {
         userId: winningBid.userId,
         type: "WON",
-        payload: {
-          auctionId,
-          finalPrice: Number(winningBid.visiblePriceSnapshot),
-        },
+        payload: { auctionId, finalPrice },
       },
     });
 
@@ -319,11 +334,7 @@ export async function finalizeAuctionIfNeeded(
       data: {
         userId: auction.sellerId,
         type: "SOLD",
-        payload: {
-          auctionId,
-          finalPrice: Number(winningBid.visiblePriceSnapshot),
-          winnerId: winningBid.userId,
-        },
+        payload: { auctionId, finalPrice, winnerId: winningBid.userId },
       },
     });
 

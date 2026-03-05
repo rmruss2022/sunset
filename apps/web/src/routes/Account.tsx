@@ -1,21 +1,25 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { ChevronLeft, Star, Package, Eye, Gavel, MapPin } from "lucide-react";
 import { trpc } from "../lib/trpc";
 import { useCurrentUser } from "../lib/userContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { CountdownTimer } from "../components/auction/CountdownTimer";
+import { PaymentTab } from "../components/payment/PaymentTab";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 }
 
-type Tab = "overview" | "bidding" | "selling" | "watching" | "profile";
+type Tab = "overview" | "bidding" | "selling" | "watching" | "profile" | "payment";
 
 export function AccountRoute() {
   const { user } = useCurrentUser();
-  const [tab, setTab] = useState<Tab>("overview");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) ?? "overview"
+  );
   const navigate = useNavigate();
 
   const profileQ = trpc.user.getProfile.useQuery();
@@ -41,7 +45,7 @@ export function AccountRoute() {
 
       {/* Header */}
       <div className="mb-8">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-ah-text-3 mb-1">My Account</p>
+        <p className="text-[10px] tracking-[0.2em] uppercase text-ah-text-3 mb-1">The Estate Room</p>
         <h1 className="font-display text-4xl font-medium text-ah-text">{user.displayName}</h1>
         <div className="flex items-center gap-4 mt-2 text-sm text-ah-text-3">
           {profile && (
@@ -58,7 +62,9 @@ export function AccountRoute() {
 
       {/* Tabs */}
       <div className="flex gap-6 border-b border-ah-border mb-8">
-        {(["overview", "bidding", "selling", "watching", "profile"] as Tab[]).map((t) => (
+        {(["overview", "bidding", "selling", "watching", "profile", "payment"] as Tab[]).map((t) => {
+        const label: Record<Tab, string> = { overview: "Overview", bidding: "My Bids", selling: "Consignments", watching: "Saved Lots", profile: "Profile", payment: "Payment" };
+        return (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -68,9 +74,9 @@ export function AccountRoute() {
                 : "border-transparent text-ah-text-3 hover:text-ah-text-2"
             }`}
           >
-            {t}
+            {label[t]}
           </button>
-        ))}
+        )})}
       </div>
 
       {/* Tab content */}
@@ -79,6 +85,7 @@ export function AccountRoute() {
       {tab === "selling" && <SellingTab listings={listingsQ.data ?? []} isLoading={listingsQ.isLoading} />}
       {tab === "watching" && <WatchingTab items={watchlistQ.data ?? []} isLoading={watchlistQ.isLoading} refetch={watchlistQ.refetch} />}
       {tab === "profile" && <ProfileTab profile={profile} />}
+      {tab === "payment" && <PaymentTab />}
     </div>
   );
 }
@@ -86,9 +93,9 @@ export function AccountRoute() {
 function OverviewTab({ profile, bids, listings, watching }: { profile: any; bids: any[]; listings: any[]; watching: any[] }) {
   const stats = [
     { label: "Bids Placed", value: profile?._count?.bids ?? 0, icon: <Gavel className="h-4 w-4" /> },
-    { label: "Active Listings", value: profile?.activeListings ?? 0, icon: <Package className="h-4 w-4" /> },
-    { label: "Watching", value: profile?._count?.watches ?? 0, icon: <Eye className="h-4 w-4" /> },
-    { label: "Feedback Score", value: profile ? `${profile.sellerRatingPercent.toFixed(1)}%` : "\u2014", icon: <Star className="h-4 w-4" /> },
+    { label: "Active Lots", value: profile?.activeListings ?? 0, icon: <Package className="h-4 w-4" /> },
+    { label: "Saved Lots", value: profile?._count?.watches ?? 0, icon: <Eye className="h-4 w-4" /> },
+    { label: "Seller Rating", value: profile ? `${profile.sellerRatingPercent.toFixed(1)}%` : "\u2014", icon: <Star className="h-4 w-4" /> },
   ];
 
   return (
@@ -106,7 +113,7 @@ function OverviewTab({ profile, bids, listings, watching }: { profile: any; bids
 
       {/* Recent bid activity */}
       <div>
-        <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-4">Recent Bid Activity</p>
+        <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-4">Recent Bidding</p>
         {bids.length === 0 ? (
           <p className="text-sm text-ah-text-3">No bids placed yet. <Link to="/" className="text-ah-gold hover:text-ah-gold-bright">Browse Lots &rarr;</Link></p>
         ) : (
@@ -136,7 +143,7 @@ function BiddingTab({ bids, isLoading }: { bids: any[]; isLoading: boolean }) {
   if (bids.length === 0) return (
     <div className="text-center py-16 border border-ah-border bg-ah-surface">
       <Gavel className="h-8 w-8 text-ah-text-3 mx-auto mb-3" />
-      <p className="text-ah-text-2 mb-4">You haven&apos;t placed any bids yet</p>
+      <p className="text-ah-text-2 mb-4">No bids have been placed yet</p>
       <Link to="/" className="text-xs tracking-widest uppercase text-ah-gold hover:text-ah-gold-bright transition-colors">Browse Lots &rarr;</Link>
     </div>
   );
@@ -192,14 +199,14 @@ function SellingTab({ listings, isLoading }: { listings: any[]; isLoading: boole
     <div>
       <div className="flex justify-end mb-4">
         <Link to="/auction/new">
-          <Button variant="outline" size="sm" className="text-xs tracking-widest uppercase">+ New Listing</Button>
+          <Button variant="outline" size="sm" className="text-xs tracking-widest uppercase">+ Consign Lot</Button>
         </Link>
       </div>
       {listings.length === 0 ? (
         <div className="text-center py-16 border border-ah-border bg-ah-surface">
           <Package className="h-8 w-8 text-ah-text-3 mx-auto mb-3" />
-          <p className="text-ah-text-2 mb-4">You haven&apos;t listed any items</p>
-          <Link to="/auction/new" className="text-xs tracking-widest uppercase text-ah-gold hover:text-ah-gold-bright transition-colors">Create Listing &rarr;</Link>
+          <p className="text-ah-text-2 mb-4">No consignments yet</p>
+          <Link to="/auction/new" className="text-xs tracking-widest uppercase text-ah-gold hover:text-ah-gold-bright transition-colors">Consign a Lot &rarr;</Link>
         </div>
       ) : (
         <div className="border border-ah-border">
@@ -243,7 +250,7 @@ function WatchingTab({ items, isLoading, refetch }: { items: any[]; isLoading: b
   if (items.length === 0) return (
     <div className="text-center py-16 border border-ah-border bg-ah-surface">
       <Eye className="h-8 w-8 text-ah-text-3 mx-auto mb-3" />
-      <p className="text-ah-text-2 mb-4">Your watchlist is empty</p>
+      <p className="text-ah-text-2 mb-4">No lots saved yet</p>
       <Link to="/" className="text-xs tracking-widest uppercase text-ah-gold hover:text-ah-gold-bright transition-colors">Browse Lots &rarr;</Link>
     </div>
   );
@@ -336,7 +343,7 @@ function ProfileTab({ profile }: { profile: any }) {
     <div className="space-y-8 max-w-lg">
       {/* Personal details */}
       <section className="border border-ah-border bg-ah-surface p-6">
-        <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-5">Personal Details</p>
+        <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-5">Member Details</p>
         <form onSubmit={saveDetails} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-[11px] tracking-[0.1em] uppercase text-ah-text-3">Display Name</label>
@@ -358,7 +365,7 @@ function ProfileTab({ profile }: { profile: any }) {
         <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-1 flex items-center gap-2">
           <MapPin className="h-3 w-3" /> Shipping Address
         </p>
-        <p className="text-xs text-ah-text-3 mb-5">Used as default shipping destination for won items</p>
+        <p className="text-xs text-ah-text-3 mb-5">Default delivery address for lots won at auction</p>
         <form onSubmit={saveAddress} className="space-y-4">
           {[
             { key: "addressLine1", label: "Address Line 1", placeholder: "123 Main St" },

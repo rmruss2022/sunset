@@ -20,7 +20,7 @@ export function SellerInfo({
   return (
     <div className={className}>
       <p className="text-[10px] tracking-[0.14em] uppercase text-ah-text-3 mb-3">
-        Seller
+        Consignor
       </p>
       <div className="space-y-2.5">
         <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export function SellerInfo({
           </span>
           <span className="text-ah-text-3">|</span>
           <span className="text-ah-text-2 tabular">
-            {feedbackCount.toLocaleString()} reviews
+            {feedbackCount.toLocaleString()} sales
           </span>
         </div>
 
@@ -49,7 +49,7 @@ export function SellerInfo({
           <div className="flex items-center gap-1.5 text-[11px] text-ah-gold
                           border border-ah-gold/25 bg-ah-gold/5 px-2.5 py-1 w-fit">
             <Award className="h-3 w-3" />
-            <span className="tracking-wide">Top Rated Seller</span>
+            <span className="tracking-wide">Trusted Consignor</span>
           </div>
         )}
       </div>

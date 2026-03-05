@@ -31,7 +31,7 @@ export function RootLayout() {
               className="font-display text-xl tracking-[0.18em] uppercase text-ah-text
                          group-hover:text-ah-gold transition-colors duration-300"
             >
-              Auction House
+              The Estate Room
             </span>
           </button>
 
@@ -42,13 +42,22 @@ export function RootLayout() {
                 <Link to="/account" className="font-display text-ah-gold text-sm hover:text-ah-gold-bright transition-colors">
                   {user.displayName}
                 </Link>
+                {user.isAdmin && (
+                  <button
+                    onClick={() => navigate("/admin")}
+                    className="h-8 px-3 text-xs tracking-widest uppercase font-medium
+                               text-ah-text-3 hover:text-ah-text-2 transition-colors duration-200"
+                  >
+                    Admin
+                  </button>
+                )}
                 <button
                   onClick={() => logoutMutation.mutate()}
                   disabled={logoutMutation.isPending}
                   className="h-8 px-3 text-xs tracking-widest uppercase font-medium
                              text-ah-text-3 hover:text-ah-text-2 transition-colors duration-200"
                 >
-                  Log out
+                  Leave
                 </button>
               </>
             ) : (
@@ -59,7 +68,7 @@ export function RootLayout() {
                            hover:border-ah-border-gold hover:text-ah-text
                            transition-all duration-200"
               >
-                Log in
+                Enter
               </button>
             )}
 
@@ -70,7 +79,7 @@ export function RootLayout() {
                          hover:bg-ah-gold hover:text-ah-bg
                          transition-all duration-200"
             >
-              + Sell
+              Consign
             </button>
 
             <button

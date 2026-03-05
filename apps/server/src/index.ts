@@ -11,6 +11,7 @@ import { prisma } from "./db/prisma.js";
 import { appRouter } from "./routers/index.js";
 import { createContext } from "./trpc.js";
 import { startOutboxWorker } from "./workers/outbox.js";
+import { startAuctionCloser } from "./workers/auctionCloser.js";
 
 const port = Number.parseInt(process.env.PORT ?? "4000", 10);
 
@@ -87,8 +88,9 @@ async function main() {
     });
   });
 
-  // Start outbox worker
+  // Start background workers
   startOutboxWorker(prisma);
+  startAuctionCloser(prisma, emitAuctionUpdate);
 
   httpServer.listen(port, () => {
     console.log(`Server ready at http://localhost:${port}`);

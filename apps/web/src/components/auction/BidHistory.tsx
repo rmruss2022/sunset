@@ -26,7 +26,7 @@ export function BidHistory({ bids, totalBidCount, className }: BidHistoryProps) 
       <div className={className}>
         <div className="py-10 text-center border border-ah-border bg-ah-surface">
           <Gavel className="h-7 w-7 text-ah-text-3 mx-auto mb-3" />
-          <p className="font-display text-xl text-ah-text-2">No bids yet</p>
+          <p className="font-display text-xl text-ah-text-2">No bids have been placed.</p>
           <p className="text-xs text-ah-text-3 mt-1">Be the first to bid on this lot.</p>
         </div>
       </div>
@@ -40,10 +40,10 @@ export function BidHistory({ bids, totalBidCount, className }: BidHistoryProps) 
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-xl text-ah-text flex items-center gap-2">
           <Gavel className="h-4 w-4 text-ah-border-gold" />
-          Bid History
+          Bid Register
         </h3>
         <span className="text-[11px] tracking-wide text-ah-text-3 tabular">
-          {totalBidCount} {totalBidCount === 1 ? "bid" : "bids"} total
+          {totalBidCount} {totalBidCount === 1 ? "bid" : "bids"} recorded
         </span>
       </div>
 
@@ -55,7 +55,7 @@ export function BidHistory({ bids, totalBidCount, className }: BidHistoryProps) 
           <span>#</span>
           <span>Bidder</span>
           <span className="text-right pr-6">Amount</span>
-          <span className="text-right">When</span>
+          <span className="text-right">Placed</span>
         </div>
 
         {/* rows */}

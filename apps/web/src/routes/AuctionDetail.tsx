@@ -166,7 +166,7 @@ export function AuctionDetailRoute() {
           {/* Description */}
           <div>
             <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-3">
-              Description
+              Provenance &amp; Description
             </p>
             <p className="text-sm text-ah-text-2 leading-relaxed whitespace-pre-line">
               {auction.description}
@@ -177,7 +177,7 @@ export function AuctionDetailRoute() {
           {Object.keys(auction.itemSpecifics).length > 0 && (
             <div>
               <p className="text-[10px] tracking-[0.16em] uppercase text-ah-text-3 mb-3">
-                Item Specifics
+                Lot Specifics
               </p>
               <div className="border border-ah-border overflow-hidden">
                 {Object.entries(auction.itemSpecifics).map(([k, v], i) => (
@@ -235,7 +235,7 @@ export function AuctionDetailRoute() {
           <div className="border border-ah-border bg-ah-raised p-5">
             <div className="flex items-baseline justify-between mb-1">
               <span className="text-[9px] tracking-[0.16em] uppercase text-ah-text-3">
-                {isClosed ? "Final Price" : "Current Bid"}
+                {isClosed ? "Hammer Price" : "Current Bid"}
               </span>
               <span className="text-[11px] text-ah-text-3 flex items-center gap-1 tabular">
                 <Gavel className="h-3 w-3" />
@@ -290,7 +290,7 @@ export function AuctionDetailRoute() {
           {/* Shipping */}
           <div className="border border-ah-border bg-ah-surface p-5">
             <p className="text-[10px] tracking-[0.14em] uppercase text-ah-text-3 mb-3">
-              Shipping &amp; Delivery
+              Delivery &amp; Shipping
             </p>
             <div>
               <InfoRow

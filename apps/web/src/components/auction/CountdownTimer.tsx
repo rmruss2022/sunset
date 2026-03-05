@@ -40,7 +40,7 @@ function urgencyColor(totalMs: number): string {
 /** Compact inline: used in AuctionCard */
 function CompactTimer({ timeLeft }: { timeLeft: TimeLeft }) {
   if (timeLeft.total <= 0) {
-    return <span className="text-ah-red text-[11px] font-medium tracking-wide">Ended</span>;
+    return <span className="text-ah-red text-[11px] font-medium tracking-wide">Closed</span>;
   }
 
   const color = urgencyColor(timeLeft.total);
@@ -62,7 +62,7 @@ function FullTimer({ timeLeft }: { timeLeft: TimeLeft }) {
     return (
       <div className="flex items-center gap-2">
         <span className="px-3 py-2 bg-ah-raised border border-ah-red/30 text-ah-red text-sm font-medium tracking-widest uppercase">
-          Auction Ended
+          Lot Closed
         </span>
       </div>
     );

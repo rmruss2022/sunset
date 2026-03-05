@@ -16,9 +16,10 @@ model User {
   sellerRatingPercent   Float    @default(100.0)
   sellerFeedbackCount   Int      @default(0)
   sellerLocation        String   @default("United States")
-  stripeCustomerId      String?
-  stripePaymentMethodId String?
-  paymentVerified       Boolean  @default(false)
+  stripeCustomerId       String?
+  stripePaymentMethodId  String?
+  stripeConnectAccountId String?
+  paymentVerified        Boolean  @default(false)
   addressLine1          String?
   addressLine2          String?
   city                  String?
@@ -71,7 +72,7 @@ model Auction {
 
   returnsAccepted    Boolean @default(true)
   returnsPolicyLabel String  @default("30 days returns")
-  paymentMethodLabel String  @default("PayPal, Credit Card")
+  paymentMethodLabel String  @default("Credit Card")
 
   watchCount Int @default(0)
   bidCount   Int @default(0)

@@ -39,9 +39,9 @@ export function LoginRoute() {
           {/* Eyebrow */}
           <div className="text-center space-y-2">
             <p className="text-[10px] tracking-[0.25em] uppercase text-ah-text-3">
-              Auction House
+              The Estate Room
             </p>
-            <h1 className="font-display text-3xl text-ah-text">Sign In</h1>
+            <h1 className="font-display text-3xl text-ah-text">Members&rsquo; Login</h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
